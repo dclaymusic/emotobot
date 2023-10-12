@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>EMOTOBOT</title>
+        <link rel="stylesheet" href="style.css">
+        <script src="snd.js"></script>
+        <script type="text/javascript">
+        </script>
+    </head>
+    <body>
+        <header>
+            <h1>Emotobot!</h1>
+            <p>Tap on the bot to play sound. Try tapping the switches below to create different musical emotions!</p>
+        </header>
+        <main onclick="togglePlay()" id="robot">
+            <img id="head" src='img/Minor.png'>
+            <div id="torso">
+                <img id="armL" src='img/armLStaccato1.png'>
+                <img id="body" src='img/BassPiano.png'>
+                <img id="armR" src='img/armRStaccato1.png'>
+            </div>
+            <img id="feet" src='img/Largo1.png'>
+        </main>
+        <article id="loadScreen">
+            <p id="loadText">Tap on the robot to load sounds.</p>
+        </article>
+        <footer id="footer">
+                <!-- Rectangular switch -->
+                <div class="display">
+                    <div class="ddiv ldiv"><p class="sliderlabel">MODE:</p></div>
+                        <div class="ddiv">
+                            <label id="mode" class="switch">
+                                <input type="checkbox" id="modebox">
+                                <span class="slider" onclick="toggle(0)"></span>
+                            </label>
+                        </div>
+                    <div class="ddiv rdiv"> <p class="slidersetting" id="modesetting">Minor</p></div>
+                </div>
+                <div class="display">
+                    <div class="ddiv ldiv"><p class="sliderlabel">REGISTER:</p></div>
+                        <div class="ddiv">
+                            <label id="pitch" class="switch">
+                                <input type="checkbox" id="pitchbox">
+                                <span class="slider" onclick="toggle(1)"></span>
+                            </label>
+                        </div>
+                    <div class="ddiv rdiv"> <p class="slidersetting" id="pitchsetting">Bass</p></div>
+                </div>
+                <div class="display">
+                    <div class="ddiv ldiv"><p class="sliderlabel">DYNAMICS:</p></div>
+                        <div class="ddiv">
+                            <label id="dynamic" class="switch">
+                                <input type="checkbox" id="dynamicbox">
+                                <span class="slider" onclick="toggle(2)"></span>
+                            </label>
+                        </div>
+                    <div class="ddiv rdiv"> <p class="slidersetting" id="dynamicsetting">Piano</p></div>
+                </div>
+                <div class="display">
+                    <div class="ddiv ldiv"><p class="sliderlabel">ARTICULATION:</p></div>
+                        <div class="ddiv">
+                            <label id="articulation" class="switch">
+                                <input type="checkbox" id="articulationbox">
+                                <span class="slider" onclick="toggle(3)"></span>
+                            </label>
+                        </div>
+                    <div class="ddiv rdiv"> <p class="slidersetting" id="articulationsetting">Staccato</p></div>
+                </div>
+                <div class="display">
+                    <div class="ddiv ldiv"><p class="sliderlabel">TEMPO:</p></div>
+                        <div class="ddiv">
+                            <label id="tempo" class="switch">
+                                <input type="checkbox" id="tempobox">
+                                <span class="slider" onclick="toggle(4)"></span>
+                            </label>
+                        </div>
+                    <div class="ddiv rdiv"> <p class="slidersetting" id="temposetting">Largo</p></div>
+                </div>
+
+
+
+  
+        </footer>
+        <script type="text/javascript">
+
+            let firstTap = false;
+            let isLoaded = false;
+            let readyToPlay = false;
+            let hasStarted = false;
+            let status = ['Minor','Bass','Piano','Staccato','Largo']
+            let isPlaying = false;
+            let tempo = 2000;
+            let inc = 0;
+            let inc2 = 1;
+            let timerClearCall = false;
+            let buffers = [];
+            let choices = [
+                ['mode','Minor','Major'],
+                ['pitch','Bass','Treble'],
+                ['dynamic','Piano','Forte'],
+                ['articulation','Staccato','Legato'],
+                ['tempo','Largo','Allegro']
+            ];
+
+
+            window.onload = function() {
+                    isLoaded = true;
+                    // snd = new Audio('snd/snd.mp3');
+                    createAllSounds();
+                    for(let i = 0; i < sounds.length; i++)
+                    {
+                        buffers[i] = null;
+                    }                    
+                    // var img = document.getElementById('pic');
+                    // var startDiv = document.getElementById('startdiv');
+                    // startDiv.onclick = function() { initSnd(); }
+                    
+                }
+
+
+                function randomInt(max)
+                {
+                    rand_val = Math.floor(Math.random() * Math.floor(max + 1))
+                    return rand_val;
+                }
+
+            function toggle(input) {
+                let b;
+                let t;
+                let i, i1, i2;
+
+                b = document.getElementById(`${choices[input][0]}box`);
+                t = document.getElementById(`${choices[input][0]}setting`);
+                if(b.checked)
+                {
+                    t.innerHTML = choices[input][1];
+                    status[input] = choices[input][1];
+                }
+                else
+                {
+                    t.innerHTML = choices[input][2];
+                    status[input] = choices[input][2];
+                }
+
+                
+                if(input == 0) { 
+                    i = document.getElementById('head');
+                    i.src = `img/${status[0]}.png`;
+                }
+                if(input == 1 || input == 2) { 
+                    i = document.getElementById('body');
+                    i.src = `img/${status[1]}${status[2]}.png`;
+                }
+                if(input == 3) { 
+                    i1 = document.getElementById('armL');
+                    i1.src = `img/armL${status[3]}${inc2}.png`;
+                    i2 = document.getElementById('armR');
+                    i2.src = `img/armR${status[3]}${inc2}.png`;
+                }
+                if(input == 4)
+                    {
+                        i = document.getElementById('feet');
+                        i.src = `img/${status[4]}${inc2}.png`;
+                        if(status[input] == 'Largo') { 
+                            tempo = 2000;
+                        }
+                        else if(status[input] == 'Allegro') { 
+                            tempo = 1000;
+                        } 
+                        if(isPlaying) { 
+                            timerClearCall = true; 
+                        }             
+                    }
+            }
+
+
+
+    function togglePlay() {
+
+        if(!firstTap)
+        {
+            initSnd();
+            firstTap = true;
+        }
+        else if(readyToPlay && !hasStarted)
+        {
+            document.getElementById('loadScreen').style.display = 'none';
+            document.getElementById('footer').style.display = 'block';
+            hasStarted = true;
+            isPlaying = true;
+
+        }
+        else
+        {
+            isPlaying = !isPlaying;
+        }
+
+        //NEED TO RESET TIMER IF TEMPO CHANGES
+
+        if(isPlaying)
+        {
+            document.getElementById('robot').style.cursor = 'pointer';
+            document.getElementById('robot').style.backgroundColor = '#ccccff';
+            timer = setInterval(metronome, tempo);
+            timer2 = setInterval(dance, tempo/2);
+        }
+        else if(hasStarted)
+        {
+            // document.getElementById("tempo").disabled = false;
+            // metronomeInc = 0;
+            // document.getElementById('play').innerHTML = 'Play';
+            // for(let i = 0; i < songImages.length; i++)
+            // {
+            //     document.getElementById(songImages[i]).style.outline = 'none';
+            // }
+            document.getElementById('robot').style.backgroundColor = '#cccccc';
+            clearInterval(timer);
+            clearInterval(timer2);
+        }
+
+    }
+
+    function resetTimer()
+    {
+        // metronomeInc = 0;
+        // document.getElementById('play').innerHTML = 'Play';
+        // for(let i = 0; i < songImages.length; i++)
+        // {
+        // 	document.getElementById(songImages[i]).style.outline = 'none';
+        // }
+        // clearInterval(timer);
+    }
+
+    function metronome()
+    {
+        selectSound(`${status[0]}${status[1]}${status[2]}${status[3]}${status[4]}${inc}`);
+        inc++;
+        if(inc >= 4) { inc = 0; }
+        if(timerClearCall)
+        {
+            timerClearCall = false;
+            clearInterval(timer); 
+            clearInterval(timer2); 
+            timer = setInterval(metronome, tempo);
+            timer2 = setInterval(dance, tempo/2);
+        }
+
+    }
+
+    function dance()
+    {
+        inc2++;
+        if(inc2 > 2) { inc2 = 1; }
+        document.getElementById('armL').src = `img/armL${status[3]}${inc2}.png`;
+        document.getElementById('armR').src = `img/armR${status[3]}${inc2}.png`;
+        document.getElementById('feet').src = `img/${status[4]}${inc2}.png`;
+    }
+
+    function setTempo() 
+    {
+        document.getElementById('tempo').oninput = function() {
+            metronomeSpeed = this.value;
+            tempo = (60/metronomeSpeed)*1000;
+            document.getElementById('output').innerHTML = this.value + ' BPM';
+
+        }
+    }
+            
+        </script>
+    </body>
+</html>
